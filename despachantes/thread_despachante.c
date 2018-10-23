@@ -8,7 +8,7 @@
 #define n_max 100
 
 typedef struct files{
-    int numero_arq=0; //serve como contador e como id
+    int numero_arq; //serve como contador e como id
     char *arquivo;//o diretório de cada arquivo
 }file;
 
@@ -17,15 +17,21 @@ typedef struct despachantes{
     pthread_t t_d;
     char dir;//diretório de análise dos arquivos
     file *n_files[n_max];//struct para files 
-    int profundida_busca = 0;//qual a profundidade da busca 
+    int profundida_busca;//qual a profundidade da busca 
     int t_op [10]; //numero de threads funcionando
 } despachante;
 
 despachante t_d;//inicialização global da única thread despachante
 
+void novos_arquivos(char *dir_arq){
+    for(int perc_arquivos = 0; perc_arquivos<=n_max; perc_arquivos++){
+        fprintf(stderr,"Arquivo %d com o diretório: %s\n", perc_arquivos, t_d.n_files[perc_arquivos]->arquivo);
+    }
+}
+
 /* function to be executed by the new thread */
 void vasculha_dir(char *dir_int, int prof){
-    fprintf(stderr, "Valor do int:%d", i);
+    fprintf(stderr, "Valor do int:%d",t_d.n_file);
     if(i>=99){
         fprintf(stderr, "O número de arquivos máximo da thread desp foi atingido");
         return;
@@ -60,11 +66,7 @@ void vasculha_dir(char *dir_int, int prof){
     }
 }
 
-void novos_arquivos(char *dir_arq){
-    for(int perc_arquivos = 0; perc_arquivos<=n_max; perc_arquivos++){
-        fprintf(stderr,"Arquivo %d com o diretório: %s\n", perc_arquivos, t_d.n_files[perc_arquivos]->arquivo);
-    }
-}
+
 
 void ler_arquivos(char *argv, char *tip_open){
      /* should check that argc > 1 */
