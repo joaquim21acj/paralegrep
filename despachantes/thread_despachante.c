@@ -5,46 +5,50 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <pthread.h>     /* pthread functions and data structures */
+//#include "despachante.h"
 #define n_max 100
 
-typedef struct files{
+typedef struct arquivos Arquivo;
+
+struct arquivos{
     int numero_arq; //serve como contador e como id
     char *arquivo;//o diretório de cada arquivo
-}file;
+    Arquivo* prox;
+};
 
 typedef struct despachantes{
     int id;
     pthread_t t_d;
     char dir;//diretório de análise dos arquivos
-    file *n_files[n_max];//struct para files 
-    int profundida_busca;//qual a profundidade da busca 
-    int t_op [10]; //numero de threads funcionando
+    int t_op [10]; //numero de threads operarias funcionando
 } despachante;
 
 despachante t_d;//inicialização global da única thread despachante
 
-void novos_arquivos(char *dir_arq){
-    for(int perc_arquivos = 0; perc_arquivos<=n_max; perc_arquivos++){
-        fprintf(stderr,"Arquivo %d com o diretório: %s\n", perc_arquivos, t_d.n_files[perc_arquivos]->arquivo);
-    }
+/*Esta função realiza a inserção de novos arquivos na lista de arquivos da thread*/
+void insere_arquivo(char *dir_arq){
+    Arquivo* novo = (Arquivo*) malloc(sizeof(Arquivo));
+
+    // for(int perc_arquivos = 0; perc_arquivos<=n_max; perc_arquivos++){
+    //     fprintf(stderr,"Arquivo %d com o diretório: %s\n", perc_arquivos, t_d.n_files[perc_arquivos]->arquivo);
+    // }
 }
 
-/* function to be executed by the new thread */
-void vasculha_dir(char *dir_int, int prof){
-    fprintf(stderr, "Valor do int:%d",t_d.n_file);
-    if(i>=99){
-        fprintf(stderr, "O número de arquivos máximo da thread desp foi atingido");
-        return;
-    }
-    else{ 
-            
+/*Inicializa a lista encadeada de arquivos*/
+Arquivo* lst_cria(void){
+    return NULL;
+}
+
+/* Função varre o diretório e pesquisa todos os arquivos, também serve para subdiretórios*/
+void vasculha_dir(char *dir_int, int prof){            
         DIR *dp;
         struct dirent *entry;
         struct stat statbuf;
+        //Caso não consiga abrir uma pasta entra 
         if((dp = opendir(dir_int)) == NULL) {
+            //chama a função que faz a inserção do arquivo na struct 
             fprintf(stderr,"cannot open directory: %s\n", dir_int);
             novos_arquivos(dir_int);
-            i++;
             return;
         }
         chdir(dir_int);
@@ -63,8 +67,8 @@ void vasculha_dir(char *dir_int, int prof){
         }
         chdir("..");
         closedir(dp);
-    }
 }
+
 
 
 
