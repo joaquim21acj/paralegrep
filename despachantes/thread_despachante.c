@@ -32,15 +32,19 @@ typedef struct despachantes
 
 despachante t_d; //inicialização global da única thread despachante
 
+int qtd_arq = 0;
+
 /*Esta função realiza a inserção de novos arquivos na lista de arquivos da thread*/
 int insere_arquivo(Arquivo *lista_arquivos, char *dir_arq)
 {
     Arquivo *novo = (Arquivo *)malloc(sizeof(Arquivo));
+    //Caso não consiga criar um novo dado retorna nulo
     if (novo == NULL) return false;
     else{
-        novo->numero_arq ; //colocara aqui uma forma para pegar a quantidade de arquivos que já tem e somar mais um
+        novo->numero_arq = qtd_arq++; //colocara aqui uma forma para pegar a quantidade de arquivos que já tem e somar mais um
         novo->prox = lista_arquivos;
-        novo->arquivo = *dir_arq;
+        novo->arquivo = dir_arq;
+        printf("Novo arquivo adicionado: %s", dir_arq);
         return true;
     }
     // for(int perc_arquivos = 0; percinsere_arquivo_arquivos<=n_max; perc_arquivos++){
@@ -65,13 +69,7 @@ void vasculha_dir(char *dir_int, int prof, Arquivo *lista_arquivos)
     //Caso não consiga abrir uma pasta entra
     if ((dp = opendir(dir_int)) == NULL)
     {
-        //chamar a função que faz a inserção do arquivo na  struct
-        fprintf(stderr, "cannot open directory: %s\n", dir_int);
-        if (insere_arquivo(dir_int, lista_arquivos) == false){
-            printf("Não há mais memória");
-        }else{
-            qtd_arq++;
-        }
+        //aqui é caso dê erro ao abrir o diretório
     }
     chdir(dir_int);
     while ((entry = readdir(dp)) != NULL)
@@ -84,8 +82,9 @@ void vasculha_dir(char *dir_int, int prof, Arquivo *lista_arquivos)
                 strcmp("..", entry->d_name) == 0)
                 continue;
             printf("%*s%s/\n", prof, "", entry->d_name);
-            /* Recurse at a new indent level */
-            vasculha_dir(entry->d_name, prof + 1, lista_arquivos);
+            insere_arquivo(lista_arquivos, dir_int);
+            /* Parte do código que permite busca recursiva para outras  pasta */
+            //vasculha_dir(entry->d_name, prof + 1, lista_arquivos);
         }
         else
             printf("%*s%s\n", prof, "", entry->d_name);
@@ -122,7 +121,9 @@ void *trata_thread(char *caminho)
 
     */
     while (1)
-    {
+    {   
+        fprintf(stderr, "Iniciando nova busca");
+        //printf("\n\n\n Iniciando nova busca");
         vasculha_dir(caminho, 0, lista_arquivos);
         sleep(5); /*espera 5 segundos e executa de novo*/
     }
@@ -136,7 +137,7 @@ int main()
     printf("A criar uma nova thread\n");
     int flag;
     
-    flag = pthread_create(&t_d.t_d, NULL, trata_thread("./fileset/file.txt"), NULL);
+    flag = pthread_create(&t_d.t_d, NULL, trata_thread("./fileset/"), NULL);
 
     if (flag != 0)
         printf("Erro na criação da thread despachante thread\n");
