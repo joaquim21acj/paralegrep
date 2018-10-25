@@ -8,6 +8,16 @@
 //#include "despachante.h"
 #define n_max 100
 
+#ifdef WINDOWS
+#include <direct.h>
+#define GetCurrentDir _getcwd
+#else
+#include <unistd.h>
+#define GetCurrentDir getcwd
+#endif
+
+#define backup "/home/joaquim/ifb/so/paralegrep/backup_files"
+#define fileset "/home/joaquim/ifb/so/paralegrep/fileset"
 typedef int bool;
 
 #define true 1
@@ -19,6 +29,7 @@ struct arquivos
 {
     int numero_arq; //serve como contador e como id
     char *arquivo;  //o diretório de cada arquivo
+    char *arquivo_backup;
     Arquivo *prox;
 };
 
@@ -34,8 +45,53 @@ despachante t_d; //inicialização global da única thread despachante
 
 int qtd_arq = 0;
 
+/*Função para concatenar ponteiro char*/
+void concatenar(char *original, char *add) {
+    while (*original)
+        original++;
+
+    while (*add) {
+        *original = *add;
+        add++;
+        original++;
+    }
+    *original = '\0';
+}
+
+/*Esta função faz o backup de cada arquivo que ela encontra
+ para realizar a comparação com o mesmo arquivo caso este seja modificado*/
+int realiza_backup(Arquivo *novo){
+    char ch;
+    FILE *_arquivo_original, *_arquivo_backup_ ;
+
+    //abre o arquivo original
+    _arquivo_original = fopen(novo->arquivo, "r");
+    
+    if (_arquivo_original == NULL){
+      fprintf(stderr, "Não foi possível abrir o novo arquivo...\n");
+      exit(1);
+    }
+     
+    _arquivo_backup_ = fopen(, "w");
+ 
+   if (_arquivo_backup_ == NULL){
+        fclose(_arquivo_original);
+        fprintf(stderr, "Não foi possível criar um novo arquivo\n");
+        exit(1);
+   }
+
+    while ((ch = fgetc(_arquivo_original)) != EOF)
+        fputc(ch, _arquivo_backup_);
+        
+        
+    fclose(_arquivo_original);
+    fclose(_arquivo_original);
+
+}
+
+
 /*Esta função realiza a inserção de novos arquivos na lista de arquivos da thread*/
-int insere_arquivo(Arquivo *lista_arquivos, char *dir_arq)
+int insere_arquivo(Arquivo *lista_arquivos, char *dir_arq, char *nome_arq)
 {
     Arquivo *novo = (Arquivo *)malloc(sizeof(Arquivo));
     //Caso não consiga criar um novo dado retorna nulo
@@ -44,7 +100,15 @@ int insere_arquivo(Arquivo *lista_arquivos, char *dir_arq)
         novo->numero_arq = qtd_arq++; //colocara aqui uma forma para pegar a quantidade de arquivos que já tem e somar mais um
         novo->prox = lista_arquivos;
         novo->arquivo = dir_arq;
+        char *back_file_path = fileset;
+        concatenar(back_file_path, nome_arq);
+        fprintf(stderr, "\nNovo arquivo de backup: \n%s\n ", back_file_path);
+        novo->arquivo_backup = back_file_path;
+        
         printf("Novo arquivo adicionado: %s", dir_arq);
+        
+        /*Realiza o backup de cada novo arquivo*/
+        realiza_backup(novo);
         return true;
     }
     // for(int perc_arquivos = 0; percinsere_arquivo_arquivos<=n_max; perc_arquivos++){
@@ -61,19 +125,22 @@ Arquivo* lst_cria(void)
 /* Função varre o diretório e pesquisa todos os arquivos, também serve para subdiretórios*/
 void vasculha_dir(char *dir_int, int prof, Arquivo *lista_arquivos)
 {   
-    printf("Diretório a ser analisado:");
-    printf("%s", dir_int);
+    fprintf(stderr, "\n\n\nDiretório a ser analisado:");
+    fprintf(stderr,"%s", dir_int);
     DIR *dp;
     struct dirent *entry;
     struct stat statbuf;
     //Caso não consiga abrir uma pasta entra
     if ((dp = opendir(dir_int)) == NULL)
     {
+        fprintf(stderr, "\n\n Pasta Nula");
         //aqui é caso dê erro ao abrir o diretório
     }
     chdir(dir_int);
+    
     while ((entry = readdir(dp)) != NULL)
     {
+        fprintf(stderr, "\n\nAqui");
         lstat(entry->d_name, &statbuf);
         if (S_ISDIR(statbuf.st_mode))
         {
@@ -81,8 +148,8 @@ void vasculha_dir(char *dir_int, int prof, Arquivo *lista_arquivos)
             if (strcmp(".", entry->d_name) == 0 ||
                 strcmp("..", entry->d_name) == 0)
                 continue;
-            printf("%*s%s/\n", prof, "", entry->d_name);
-            insere_arquivo(lista_arquivos, dir_int);
+            fprintf(stderr, "%*s%s/\n", prof, "", entry->d_name);
+            insere_arquivo(lista_arquivos, dir_int, entry->d_name);
             /* Parte do código que permite busca recursiva para outras  pasta */
             //vasculha_dir(entry->d_name, prof + 1, lista_arquivos);
         }
@@ -133,11 +200,13 @@ void *trata_thread(char *caminho)
 
 int main()
 {
+    int flag;
+    char diretorio_prog[FILENAME_MAX];
+    GetCurrentDir(diretorio_prog, FILENAME_MAX );
 
     printf("A criar uma nova thread\n");
-    int flag;
-    
-    flag = pthread_create(&t_d.t_d, NULL, trata_thread("./fileset/"), NULL);
+    printf("\n Diretório do programa: %s", diretorio_prog);
+    flag = pthread_create(&t_d.t_d, NULL, trata_thread(fileset), NULL);
 
     if (flag != 0)
         printf("Erro na criação da thread despachante thread\n");
