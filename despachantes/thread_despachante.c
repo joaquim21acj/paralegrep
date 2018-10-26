@@ -16,8 +16,8 @@
 #define GetCurrentDir getcwd
 #endif
 
-#define backup "/home/joaquim/ifb/so/paralegrep/backup_files"
-#define fileset "/home/joaquim/ifb/so/paralegrep/fileset"
+#define backup "/home/joaquim/joaquim/ifb/so/paralegrep/backup_files/"
+#define fileset "/home/joaquim/joaquim/ifb/so/paralegrep/fileset/"
 typedef int bool;
 
 #define true 1
@@ -46,16 +46,25 @@ despachante t_d; //inicialização global da única thread despachante
 int qtd_arq = 0;
 
 /*Função para concatenar ponteiro char*/
-void concatenar(char *original, char *add) {
-    while (*original)
-        original++;
+char* concatenar(char *original, char *add) {
 
-    while (*add) {
-        *original = *add;
-        add++;
-        original++;
-    }
-    *original = '\0';
+    int tamanho = strlen(original) + strlen(add) + 1;
+    char s[tamanho];
+
+    strcpy(s, original);
+    strcat(s, add);
+    fprintf(stderr,"\n Após concatenar: %s", s);
+    char *retorno = s;
+    return retorno;
+    // while (*original)
+    //     original++;
+
+    // while (*add) {
+    //     *original = *add;
+    //     add++;
+    //     original++;
+    // }
+    // *original = '\0';
 }
 
 /*Esta função faz o backup de cada arquivo que ela encontra
@@ -63,6 +72,8 @@ void concatenar(char *original, char *add) {
 int realiza_backup(Arquivo *novo){
     char ch;
     FILE *_arquivo_original, *_arquivo_backup_ ;
+    fprintf(stderr, "Realizando o backup");
+
 
     //abre o arquivo original
     _arquivo_original = fopen(novo->arquivo, "r");
@@ -72,7 +83,7 @@ int realiza_backup(Arquivo *novo){
       exit(1);
     }
      
-    _arquivo_backup_ = fopen(, "w");
+    _arquivo_backup_ = fopen(novo->arquivo_backup, "w");
  
    if (_arquivo_backup_ == NULL){
         fclose(_arquivo_original);
@@ -97,13 +108,14 @@ int insere_arquivo(Arquivo *lista_arquivos, char *dir_arq, char *nome_arq)
     //Caso não consiga criar um novo dado retorna nulo
     if (novo == NULL) return false;
     else{
+        
         novo->numero_arq = qtd_arq++; //colocara aqui uma forma para pegar a quantidade de arquivos que já tem e somar mais um
         novo->prox = lista_arquivos;
         novo->arquivo = dir_arq;
         char *back_file_path = fileset;
-        concatenar(back_file_path, nome_arq);
-        fprintf(stderr, "\nNovo arquivo de backup: \n%s\n ", back_file_path);
-        novo->arquivo_backup = back_file_path;
+        fprintf(stderr, "\nConcatenando: \n %s%s", back_file_path, nome_arq);
+        novo->arquivo_backup = concatenar(back_file_path, nome_arq);
+        //fprintf(stderr, "\nCriando novo arquivo");
         
         printf("Novo arquivo adicionado: %s", dir_arq);
         
@@ -123,41 +135,54 @@ Arquivo* lst_cria(void)
 }
 
 /* Função varre o diretório e pesquisa todos os arquivos, também serve para subdiretórios*/
-void vasculha_dir(char *dir_int, int prof, Arquivo *lista_arquivos)
-{   
-    fprintf(stderr, "\n\n\nDiretório a ser analisado:");
-    fprintf(stderr,"%s", dir_int);
-    DIR *dp;
-    struct dirent *entry;
-    struct stat statbuf;
-    //Caso não consiga abrir uma pasta entra
-    if ((dp = opendir(dir_int)) == NULL)
-    {
-        fprintf(stderr, "\n\n Pasta Nula");
-        //aqui é caso dê erro ao abrir o diretório
-    }
-    chdir(dir_int);
+// void vasculha_dir(char *dir_int, int prof, Arquivo *lista_arquivos)
+// {   
+//     fprintf(stderr, "\n\n\nDiretório a ser analisado:");
+//     fprintf(stderr,"%s", dir_int);
+//     DIR *dp;
+//     struct dirent *entry;
+//     struct stat statbuf;
+//     //Caso não consiga abrir uma pasta entra
+//     if ((dp = opendir(dir_int)) == NULL)
+//     {
+//         fprintf(stderr, "\n\n Pasta Nula");
+//         //aqui é caso dê erro ao abrir o diretório
+//     }
+//     //chdir(dir_int);
     
-    while ((entry = readdir(dp)) != NULL)
-    {
-        fprintf(stderr, "\n\nAqui");
-        lstat(entry->d_name, &statbuf);
-        if (S_ISDIR(statbuf.st_mode))
-        {
-            /* Found a directory, but ignore . and .. */
-            if (strcmp(".", entry->d_name) == 0 ||
-                strcmp("..", entry->d_name) == 0)
-                continue;
-            fprintf(stderr, "%*s%s/\n", prof, "", entry->d_name);
-            insere_arquivo(lista_arquivos, dir_int, entry->d_name);
-            /* Parte do código que permite busca recursiva para outras  pasta */
-            //vasculha_dir(entry->d_name, prof + 1, lista_arquivos);
+//     while ((entry = readdir(dp)) != NULL)
+//     {
+//         lstat(entry->d_name, &statbuf);
+//         if (S_ISDIR(statbuf.st_mode))
+//         {
+//             /* Found a directory, but ignore . and .. */
+//             if (strcmp(".", entry->d_name) == 0 ||
+//                 strcmp("..", entry->d_name) == 0)
+//                 continue;
+//             fprintf(stderr, "%*s%s/\n", prof, "", entry->d_name);
+//             insere_arquivo(lista_arquivos, dir_int, entry->d_name);
+//             /* Parte do código que permite busca recursiva para outras  pasta */
+//             //vasculha_dir(entry->d_name, prof + 1, lista_arquivos);
+//         }
+//         else
+//             printf("%*s%s\n", prof, "", entry->d_name);
+//     }
+//     //chdir("..");
+//     closedir(dp);
+// }
+void vasculha_dir(char *dir_int, int prof, Arquivo *lista_arquivos){
+    DIR *d;
+    struct dirent *dir;
+    d = opendir(dir_int);
+    if (d) {
+        while ((dir = readdir(d)) != NULL) {
+            if (strcmp(".", dir->d_name) == 0 ||
+                 strcmp("..", dir->d_name) == 0)
+                 continue;
+            insere_arquivo(lista_arquivos, dir_int, dir->d_name);
         }
-        else
-            printf("%*s%s\n", prof, "", entry->d_name);
+    closedir(d);
     }
-    chdir("..");
-    closedir(dp);
 }
 
 void ler_arquivos(char *argv, char *tip_open)

@@ -9,7 +9,7 @@
             "name": "(gdb) Launch",
             "type": "cppdbg",
             "request": "launch",
-            "program": "./despachantes/thred",
+            "program": "./despachantes/thread",
             "args": [],
             "stopAtEntry": false,
             "cwd": "${workspaceFolder}",
