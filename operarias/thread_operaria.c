@@ -55,6 +55,7 @@ int ocorrencias(arquivo *a, char *palavra) {
 
     int ch = fgetc(_arquivo_);
     while (ch != EOF){
+        fprintf(stderr, "%d", ch);//10 == space
         fprintf(stderr, "%c", ch);
         //fputc(ch, _arquivo_backup_);
         ch = fgetc(_arquivo_);
