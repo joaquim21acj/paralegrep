@@ -17,7 +17,7 @@
 #endif
 
 #define backup "/home/joaquim/joaquim/ifb/so/paralegrep/backup_files/"
-#define fileset "/home/joaquim/joaquim/ifb/so/paralegrep/fileset/file.txt"
+#define fileset "/home/joaquim/ifb/so/paralegrep/fileset/file.txt"
 typedef int bool;
 
 #define true 1
@@ -54,17 +54,18 @@ int ocorrencias(arquivo *a, char *palavra) {
 
 
     int ch = fgetc(_arquivo_);
+    int *temp_pal = (int *) 
     while (ch != EOF){
-        fprintf(stderr, "%d", ch);//10 == space
+        fprintf(stderr, "%d", ch);//10 == pula linha , 32 == espaço
         fprintf(stderr, "%c", ch);
-        //fputc(ch, _arquivo_backup_);
+        
         ch = fgetc(_arquivo_);
         }
 }
 
 void *trata_thread(char *caminho)
 {
-    arquivo *a;
+    arquivo *a = (arquivo *)malloc(sizeof(arquivo));
     a->arquivo = fileset;
     while (1)
     {   
