@@ -28,6 +28,7 @@ typedef struct arquivos Arquivo;
 struct arquivos
 {
     int numero_arq; //serve como contador e como id
+    int n_vezes; //Qtas vezes a palavra aparece no arquivo
     char *arquivo;  //o diretório de cada arquivo
     char *arquivo_backup;
     Arquivo *prox;
@@ -113,7 +114,8 @@ int insere_arquivo(Arquivo *lista_arquivos, char *dir_arq, char *nome_arq)
         char *temp1 = concatenar(back_file_path, nome_arq);
         novo->arquivo_backup = temp1;
         
-
+        novo->n_vezes = 0; /*Verificar o melhor jeito para zerar a contagem quando um novo 
+        arquivo for adicionado, ou quando for alterado*/
         /*Realiza o backup de cada novo arquivo*/
         realiza_backup(novo);
         return true;
