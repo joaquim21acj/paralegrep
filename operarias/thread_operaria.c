@@ -17,7 +17,7 @@
 #endif
 
 #define backup "/home/joaquim/joaquim/ifb/so/paralegrep/backup_files/"
-#define fileset "/home/joaquim/joaquim/ifb/so/paralegrep/fileset/file.txt"
+#define fileset "/home/joaquim/ifb/so/paralegrep/fileset/file.txt"
 typedef int bool;
 
 #define true 1
@@ -52,6 +52,14 @@ operaria t_o; //inicialização global da única thread despachante
 int qtd_arq = 0;
 int tam;
 
+/*Verifica se a lista está vazia*/
+int vazia(Palavra *FILA)
+{
+	if(FILA->prox == NULL)
+		return true;
+	else
+		return false;
+}
 
 /*Inicializa a lista encadeada de arquivos*/
 Palavra* lst_cria(Palavra *FILA)
@@ -72,15 +80,35 @@ Palavra *aloca()
 	}
 }
 
-/*Esta função realiza a inserção de novos arquivos na lista de arquivos da thread*/
-int insere_caracter(Palavra *lista_arquivos, int valor)
+
+void libera(Palavra *FILA)
 {
-    Palavra *novo = (Palavra *)malloc(sizeof(Palavra));
+	if(!vazia(FILA)){
+		Palavra *proxNode, *atual;
+
+		atual = FILA->prox;
+		while(atual != NULL){
+			proxNode = atual->prox;
+			free(atual);
+			atual = proxNode;
+		}
+	}
+}
+
+/*Esta função realiza a inserção de caracteres na fila*/
+int insere_caracter(Palavra *FILA, int valor)
+{
+    Palavra *novo = aloca();
+    novo->prox=NULL;
+    novo->letra=valor;
     //Caso não consiga criar um novo dado retorna nulo
-    if (novo == NULL) return false;
+    if (vazia(FILA)) FILA->prox=novo;
     else{
-        novo->letra=valor;
-        novo->prox=lista_arquivos;
+        Palavra *tmp = FILA->prox;
+        while(tmp != NULL) tmp = tmp->prox;
+        
+        tmp->prox = novo;
+
         return true;
     }
 }
@@ -90,7 +118,25 @@ void inicia(Palavra *FILA){
 	tam=0;
 }
 
-int ocorrencias(arquivo *a, char *palavra) {  
+int compara(Palavra *FILA, char *word){
+    fprintf(stderr, "\nIniciando a comparacao\n");
+    if(vazia(FILA)){
+		fprintf(stderr, "\nFila vazia!\n\n");
+		return false;
+	}
+
+	Palavra *tmp;
+	tmp = FILA->prox;
+
+	while( tmp != NULL){
+		fprintf(stderr, "\n%c", tmp->letra);
+		tmp = tmp->prox;
+	}
+	printf("\n\n");
+    return true;
+}
+
+int ocorrencias(arquivo *a, char *word) {  
     fprintf(stderr, "\nIniciando contagem de ocorrencias no arquivo\n");
     FILE *_arquivo_;
     _arquivo_ = fopen(a->arquivo, "r");
@@ -113,11 +159,18 @@ int ocorrencias(arquivo *a, char *palavra) {
     https://www.cprogressivo.net/2014/05/Filas-em-C-Como-Programar-Tutorial-Estrutura-de-Dados-Dinamica-Queue.html*/
     int ch = fgetc(_arquivo_);
     while (ch != EOF){
-        if((ch == 32)||(ch == 10)){
-            /*Chamar a função que faz a comparação*/
-            /*Incrementar o contador que diz quantas vezes a palavra apareceu no arquivo*/
-            /*Chamar a função que limpa a lista*/
-        }
+        // if((ch == 32)||(ch == 10)){
+        //     /*Chamar a função que faz a comparação que deve retornar 1 para igual e 0 para diferente*/
+        //     if(compara(FILA, word)){
+
+        //     }else{
+
+        //     }
+        //     /*Incrementar o contador que diz quantas vezes a palavra apareceu no arquivo*/
+        //     libera(FILA);
+        // }else{
+        //     insere_caracter(FILA, ch);
+        // }
 
 
         fprintf(stderr, "%d", ch);//10 == space
@@ -125,6 +178,8 @@ int ocorrencias(arquivo *a, char *palavra) {
         //fputc(ch, _arquivo_backup_);
         ch = fgetc(_arquivo_);
         }
+        libera(FILA);
+    
 }
 
 void *trata_thread(arquivo *a)
