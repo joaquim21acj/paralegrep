@@ -31,6 +31,9 @@ typedef struct arquivos
     char *arquivo_backup; //o diretório de backup do arquivo
 } arquivo;
 
+
+int qtd_itens_fila=0;
+
 typedef struct palavra Palavra;
 
 struct palavra{
@@ -82,35 +85,60 @@ Palavra *aloca()
 
 
 void libera(Palavra *FILA)
-{
+{   
 	if(!vazia(FILA)){
 		Palavra *proxNode, *atual;
 
 		atual = FILA->prox;
-		while(atual != NULL){
-			proxNode = atual->prox;
+        int contador=0;
+		while(contador<qtd_itens_fila){
+			if(contador<qtd_itens_fila-1){
+                proxNode = atual->prox;
+            }else{
+                proxNode = NULL;
+            }
+                
+            fprintf(stderr, "\nLimpando o %d item %d", atual->letra, contador);
 			free(atual);
-			atual = proxNode;
+            if(contador<qtd_itens_fila-1) atual = proxNode;
+            contador++;
+            fprintf(stderr, "\nFinalizou um loop");
 		}
 	}
+    fprintf(stderr, "\n\nsaiu do libera");
+    qtd_itens_fila=0;
+    FILA->prox=NULL;
 }
 
 /*Esta função realiza a inserção de caracteres na fila*/
-int insere_caracter(Palavra *FILA, int valor)
+void insere_caracter(Palavra *FILA, int valor)
 {
+    
     Palavra *novo = aloca();
+    
     novo->prox=NULL;
+    
     novo->letra=valor;
+    fprintf(stderr, "\nEntrou na inserção com a fila %d  \n", novo->letra);
     //Caso não consiga criar um novo dado retorna nulo
-    if (vazia(FILA)) FILA->prox=novo;
+    if (vazia(FILA)){
+        FILA->prox=novo;
+        //fprintf(stderr, "\nEntrou nO IF  valor do fila: %d\n", FILA->prox->letra);
+    } 
     else{
         Palavra *tmp = FILA->prox;
-        while(tmp != NULL) tmp = tmp->prox;
-        
+        while(tmp->prox != NULL) {
+            tmp = tmp->prox;
+        }
         tmp->prox = novo;
-
-        return true;
+        // Palavra *tmp = FILA->prox;
+        // while(tmp != NULL) {
+        //     tmp = tmp->prox;
+        // }
+        // tmp = novo;
     }
+    qtd_itens_fila++;
+    fprintf(stderr, "\nSAIU\n");
 }
 
 void inicia(Palavra *FILA){
@@ -124,16 +152,26 @@ int compara(Palavra *FILA, char *word){
 		fprintf(stderr, "\nFila vazia!\n\n");
 		return false;
 	}
+    fprintf(stderr, "\n quantidade de itens: %d", qtd_itens_fila);
+    char s[qtd_itens_fila];
+    memset( s, 0x0, qtd_itens_fila);
+    fprintf(stderr, "\n item: %s", s);
 
-	Palavra *tmp;
+   	Palavra *tmp;
 	tmp = FILA->prox;
+    for(int i=0; i<qtd_itens_fila; i++){
+        s[i]=tmp->letra;
+        
+        tmp=tmp->prox;
+    }
+    fprintf(stderr, "\n%c\n", s[qtd_itens_fila-1]);
 
-	while( tmp != NULL){
-		fprintf(stderr, "\n%c", tmp->letra);
-		tmp = tmp->prox;
-	}
-	printf("\n\n");
-    return true;
+    int rc = strncmp(s, word, qtd_itens_fila);
+    if(rc==0){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 int ocorrencias(arquivo *a, char *word) {  
@@ -159,27 +197,36 @@ int ocorrencias(arquivo *a, char *word) {
     https://www.cprogressivo.net/2014/05/Filas-em-C-Como-Programar-Tutorial-Estrutura-de-Dados-Dinamica-Queue.html*/
     int ch = fgetc(_arquivo_);
     while (ch != EOF){
-        // if((ch == 32)||(ch == 10)){
-        //     /*Chamar a função que faz a comparação que deve retornar 1 para igual e 0 para diferente*/
-        //     if(compara(FILA, word)){
+        fprintf(stderr, "Entrou %c", ch);
+        if((ch == 32)||(ch == 10)){
+            fprintf(stderr, "\nEntrou no if do espaço com %d itens na fila\n", qtd_itens_fila);
+            Palavra *tmp = FILA->prox;
+            int contador=0;
+            while (contador<qtd_itens_fila){
+                fprintf(stderr, "\n%c\n", tmp->letra);
+                tmp=tmp->prox;
+                contador++;
+            }
+            if(tmp==NULL) fprintf(stderr, "Deu ruim");
+            
+            /*Chamar a função que faz a comparação que deve retornar 1 para igual e 0 para diferente*/
+            if(compara(FILA, word)){
 
-        //     }else{
+            }else{
 
-        //     }
-        //     /*Incrementar o contador que diz quantas vezes a palavra apareceu no arquivo*/
-        //     libera(FILA);
-        // }else{
-        //     insere_caracter(FILA, ch);
-        // }
+            }
+            /*Incrementar o contador que diz quantas vezes a palavra apareceu no arquivo*/
+            libera(FILA);
+        }else{
+            insere_caracter(FILA, ch);
+        }
 
-
-        fprintf(stderr, "%d", ch);//10 == space
-        fprintf(stderr, "%c", ch);
+        fprintf(stderr, "\nValor em int %d valor em char ", ch);//10 == space
+        fprintf(stderr, "%c\n", ch);
         //fputc(ch, _arquivo_backup_);
         ch = fgetc(_arquivo_);
         }
-        libera(FILA);
-    
+        libera(FILA);  
 }
 
 void *trata_thread(arquivo *a)
@@ -209,7 +256,7 @@ int main()
 
 
     printf("\nA criar uma nova thread\n");
-    printf("\n Diretório do programa: %s\n", diretorio_prog);
+    //printf("\n Diretório do programa: %s\n", diretorio_prog);
     flag = pthread_create(&t_o.t_o, NULL, trata_thread(a), NULL);
 
     if (flag != 0)
