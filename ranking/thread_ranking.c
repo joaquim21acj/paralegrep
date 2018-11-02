@@ -17,7 +17,7 @@
 #endif
 
 #define backup "/home/joaquim/joaquim/ifb/so/paralegrep/backup_files/"
-#define fileset "/home/joaquim/ifb/so/paralegrep/fileset/"
+#define fileset "/home/joaquim/ifb/so/paralegrep/fileset/file.txt"
 typedef int bool;
 
 #define true 1
@@ -171,61 +171,33 @@ int compara(Palavra *FILA, char *word){
     }
 }
 
-int ocorrencias(arquivo *a, char *word) {  
-    fprintf(stderr, "\nIniciando contagem de ocorrencias no arquivo\n");
-    FILE *_arquivo_;
-    _arquivo_ = fopen(a->arquivo, "r");
-    if (_arquivo_ == NULL){
-      fprintf(stderr, "\nNão foi possível abrir o novo arquivo...\n");
-      exit(1);
-    }
 
-    /*Criação da fila que simboliza a palavra*/
-    Palavra *FILA = (Palavra *) malloc(sizeof(Palavra));
-    if(!FILA){
-        fprintf(stderr, "\nNão foi possível criar!\n\nSem memória!\n\n\n");
-        exit(1);
-    }else{
-        inicia(FILA);
+int caminho_eh_novo(char *dir, arquivo *lista_arquivos){
+    fprintf(stderr, "\nRealizando verificação p saber se o caminho é novo");
+    fprintf(stderr, "\nQtd de arquivos: %d", qtd_arq);
+    
+    for(int i=0; i<qtd_arq; i++){
+        fprintf(stderr, "\nDir de comp dir: %s e tmp->arq: %s", dir, lista_arquivos[i].arquivo);
+        if(strcmp(dir, lista_arquivos[i].arquivo)==0){
+            return false;
+        }
     }
+    return true;
+}
 
-    /*Início da leitura e contagem*/
-    /*Estou seguindo este tutorial
-    https://www.cprogressivo.net/2014/05/Filas-em-C-Como-Programar-Tutorial-Estrutura-de-Dados-Dinamica-Queue.html*/
-    int ch = fgetc(_arquivo_);
-    while (ch != EOF){
-        if((ch == 32)||(ch == 10)){
-            fprintf(stderr, "\nEntrou no if do espaço com %d itens na fila\n", qtd_itens_fila);
-            Palavra *tmp = FILA->prox;
-            int contador=0;
-            while (contador<qtd_itens_fila){
-                tmp=tmp->prox;
-                contador++;
-            }            
-            /*Chamar a função que faz a comparação que deve retornar 1 para igual e 0 para diferente*/
-            if(compara(FILA, word)){
-                a->n_vezes++;
-            }
-            /*Incrementar o contador que diz quantas vezes a palavra apareceu no arquivo*/
-            libera(FILA);
-        }else{
-            insere_caracter(FILA, ch);
-        }
-        //fputc(ch, _arquivo_backup_);
-        ch = fgetc(_arquivo_);
-        }
-        fprintf(stderr, "\nQuantidades de vezes que a pal. aparece no arquivo: %d", a->n_vezes);
-        libera(FILA);  
+int faz_ranking(arquivo *a, arquivo *lista_arquivos) {  
+    
 }
 
 void *trata_thread(arquivo *a)
 {
+    arquivo lista_arquivos[n_max];
 
     while (1)
     {   
         fprintf(stderr, "\nIniciando nova busca\n");
         //printf("\n\n\n Iniciando nova busca");
-        ocorrencias(a, "asdf");
+        faz_ranking(a, lista_arquivos);
         sleep(5); /*espera 5 segundos e executa de novo*/
     }
 

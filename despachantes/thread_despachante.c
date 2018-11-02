@@ -16,8 +16,8 @@
 #define GetCurrentDir getcwd
 #endif
 
-#define backup "/home/joaquim/joaquim/ifb/so/paralegrep/backup_files/"
-#define fileset "/home/joaquim/joaquim/ifb/so/paralegrep/fileset/"
+#define backup "/home/joaquim/ifb/so/paralegrep/backup_files/"
+#define fileset "/home/joaquim/ifb/so/paralegrep/fileset/"
 typedef int bool;
 
 #define true 1
@@ -28,10 +28,11 @@ typedef struct arquivos Arquivo;
 struct arquivos
 {
     int numero_arq; //serve como contador e como id
+    time_t alteracao;
     int n_vezes; //Qtas vezes a palavra aparece no arquivo
     char *arquivo;  //o diretório de cada arquivo
-    char *arquivo_backup;
-    Arquivo *prox;
+    char *caminho_p_arquivo;
+    //char *arquivo_backup;
 };
 
 typedef struct despachantes
@@ -60,72 +61,134 @@ char * concatenar(char *original, char *add) {
 
 /*Esta função faz o backup de cada arquivo que ela encontra
  para realizar a comparação com o mesmo arquivo caso este seja modificado*/
-int realiza_backup(Arquivo *novo){
-    int ch;
-    FILE *_arquivo_original, *_arquivo_backup_ ;
-    fprintf(stderr, "\nRealizando o backup\n");
+// int realiza_backup(Arquivo *novo){
+//     int ch;
+//     FILE *_arquivo_original, *_arquivo_backup_ ;
+//     fprintf(stderr, "\nRealizando o backup\n");
 
 
-    //abre o arquivo original
-    _arquivo_original = fopen(novo->arquivo, "r");
-    if (_arquivo_original == NULL){
-      fprintf(stderr, "\nNão foi possível abrir o novo arquivo...\n");
-      exit(1);
-    }
+//     //abre o arquivo original
+//     _arquivo_original = fopen(novo->arquivo, "r");
+//     if (_arquivo_original == NULL){
+//       fprintf(stderr, "\nNão foi possível abrir o novo arquivo...\n");
+//       exit(1);
+//     }
 
-    //abre o arquivo de backup
-    _arquivo_backup_ = fopen(novo->arquivo_backup, "w+");
-   if (_arquivo_backup_ == NULL){
-        fclose(_arquivo_original);
-        fprintf(stderr, "\nNão foi possível criar um novo arquivo\n");
-        exit(1);
-    }
-    fprintf(stderr, "Iniciando cópia de arquivo");
-    ch = fgetc(_arquivo_original);
-    while (ch != EOF){
-        fprintf(stderr, "%c", ch);
-        fputc(ch, _arquivo_backup_);
-        ch = fgetc(_arquivo_original);
-        }
+//     //abre o arquivo de backup
+//     _arquivo_backup_ = fopen(novo->arquivo_backup, "w+");
+//    if (_arquivo_backup_ == NULL){
+//         fclose(_arquivo_original);
+//         fprintf(stderr, "\nNão foi possível criar um novo arquivo\n");
+//         exit(1);
+//     }
+//     fprintf(stderr, "Iniciando cópia de arquivo");
+//     ch = fgetc(_arquivo_original);
+//     while (ch != EOF){
+//         fprintf(stderr, "%c", ch);
+//         fputc(ch, _arquivo_backup_);
+//         ch = fgetc(_arquivo_original);
+//         }
         
-    fclose(_arquivo_original);
-    fclose(_arquivo_original);
+//     fclose(_arquivo_original);
+//     fclose(_arquivo_original);
 
+// }
+
+
+int retorna_pos_arquivo(char *dir, Arquivo *lista_arquivos){
+    int i;
+    for(i=0; i<=qtd_arq; i++){
+        if(strcmp(lista_arquivos[i].arquivo, dir)==0){
+            
+            break;
+        }
+    }
+    fprintf(stderr, "Vai sair com o i: %d", i);
+    return i;
 }
 
 /*Esta função realiza a inserção de novos arquivos na lista de arquivos da thread*/
-int insere_arquivo(Arquivo *lista_arquivos, char *dir_arq, char *nome_arq)
+int insere_arquivo(Arquivo *lista_arquivos, char *dir_arq, char *nome_arq, int is_novo)
 {
-    Arquivo *novo = (Arquivo *)malloc(sizeof(Arquivo));
+    if(qtd_arq==(n_max-1)){
+        fprintf(stderr, "Foi atingido o tamanho máximo de arquivos");
+
+        return false;
+    }
+
+    Arquivo novo;
     //Caso não consiga criar um novo dado retorna nulo
-    if (novo == NULL) return false;
-    else{
-        
-        novo->numero_arq = qtd_arq++; //colocara aqui uma forma para pegar a quantidade de arquivos que já tem e somar mais um
-        novo->prox = lista_arquivos;
-
-
-        /*Junta o caminho p/ a pasta de arquivos + o nome do arquivo original*/
-        char *temp = concatenar(dir_arq, nome_arq);
-        novo->arquivo = temp;
+               
+        novo.arquivo = nome_arq;
+        novo.caminho_p_arquivo=dir_arq;
 
         /*Junta o caminho p/ a pasta de arquivos de backup + o nome do arquivo backup*/
-        char *back_file_path = backup;
-        char *temp1 = concatenar(back_file_path, nome_arq);
-        novo->arquivo_backup = temp1;
+        // char *back_file_path = backup;
+        // char *temp1 = concatenar(back_file_path, nome_arq);
+        //novo->arquivo_backup = temp1;
         
-        novo->n_vezes = 0; /*Verificar o melhor jeito para zerar a contagem quando um novo 
-        arquivo for adicionado, ou quando for alterado*/
-        /*Realiza o backup de cada novo arquivo*/
-        realiza_backup(novo);
+        struct stat st;
+        char *tmp = concatenar(dir_arq, nome_arq);
+        if(stat(tmp, &st)){
+            perror("stat");
+            exit(1);
+        }
+        time_t t = st.st_mtime; /*st_mtime is type time_t */
+        novo.alteracao = t;
+        novo.n_vezes = 0; /*Verifica a posição que o arquivo vai ser coloado
+        se for um novo coloca na proxima posição
+        se for atualização coloca na posição antiga*/
+        if(is_novo==false){
+            int pos = retorna_pos_arquivo(nome_arq, lista_arquivos);
+            lista_arquivos[pos]=novo;
+            fprintf(stderr, "\nArquivo atualizado %s", lista_arquivos[pos].arquivo);
+        }else{
+            lista_arquivos[qtd_arq]=novo;
+            qtd_arq++;
+            fprintf(stderr, "\nFoi inserido um novo arquivo na lista %s", lista_arquivos[qtd_arq-1].arquivo);
+        }
+
+
         return true;
-    }
 }
 
-/*Inicializa a lista encadeada de arquivos*/
-Arquivo* lst_cria(void)
-{
-    return NULL;
+int caminho_eh_novo(char *dir, Arquivo *lista_arquivos){
+    fprintf(stderr, "\nRealizando verificação p saber se o caminho é novo");
+    fprintf(stderr, "\nQtd de arquivos: %d", qtd_arq);
+    
+    for(int i=0; i<qtd_arq; i++){
+        fprintf(stderr, "\nDir de comp dir: %s e tmp->arq: %s", dir, lista_arquivos[i].arquivo);
+        if(strcmp(dir, lista_arquivos[i].arquivo)==0){
+            return false;
+        }
+    }
+    return true;
+}
+
+int arquivo_foi_modificado(Arquivo *lista_arquivos, char *dir){
+    struct stat st; 
+    int i;
+    for(i=0; i<=qtd_arq; i++){
+        fprintf(stderr, "\n Indo comparar a lista: %s  e o dir %s",lista_arquivos[i].arquivo, dir);
+        if(strcmp(lista_arquivos[i].arquivo, dir)==0){
+            char *diretorio = lista_arquivos[i].caminho_p_arquivo;
+            char *temp=concatenar(diretorio, lista_arquivos[i].arquivo);
+            if(stat(temp, &st)== -1){
+                perror("stat");
+                exit(1);
+            }
+            fprintf(stderr, "Vai sair com o i: %d", i);
+            break;
+        }
+    }
+    fprintf(stderr, "Saiu com o i: %d", i);
+
+    time_t t = st.st_mtime; /*st_mtime is type time_t */
+    if (st.st_mtime > lista_arquivos[i].alteracao){
+        return true;
+    }else{
+        return false;
+    }
 }
 
 void vasculha_dir(char *dir_int, int prof, Arquivo *lista_arquivos){
@@ -133,11 +196,23 @@ void vasculha_dir(char *dir_int, int prof, Arquivo *lista_arquivos){
     struct dirent *dir;
     d = opendir(dir_int);
     if (d) {
+        fprintf(stderr, "\nVasculhando diretorio");
         while ((dir = readdir(d)) != NULL) {
             if (strcmp(".", dir->d_name) == 0 ||
                  strcmp("..", dir->d_name) == 0)
                  continue;
-            insere_arquivo(lista_arquivos, dir_int, dir->d_name);
+
+            if(caminho_eh_novo(dir->d_name, lista_arquivos)){
+                fprintf(stderr, "\nCaminho é novo");
+                insere_arquivo(lista_arquivos, dir_int, dir->d_name, true);
+            }else{
+                if(arquivo_foi_modificado(lista_arquivos, dir->d_name)){
+                    fprintf(stderr, "\nArquivo foi alterado");
+                    insere_arquivo(lista_arquivos, dir_int, dir->d_name, false);
+                }else{
+                    fprintf(stderr, "\nArquivo não foi modificado");
+                }
+            }
         }
     closedir(d);
     }
@@ -163,8 +238,7 @@ void ler_arquivos(char *argv, char *tip_open)
 
 void *trata_thread(char *caminho)
 {
-    Arquivo* lista_arquivos;
-    lista_arquivos = lst_cria();
+    Arquivo lista_arquivos [n_max];
     /*
         lista_arquivos = insere_arquivo(lista_arquivos, )
         colocar essa linha de código na parte que reconhece os arquivos

@@ -1,0 +1,30 @@
+Palíndromos são palavras ou frases que podem ser lidas da esquerda para a direita ou da direita para a esquerda. Podemos dizer que o palíndromo, comparado à frase comum, é como um bilhete de ida-e-volta. "Ana", por 
+exemplo, é um nome palindrômico.
+
+O vocábulo "palíndromo" é de origem grega, sendo formado pelos elementos "palin" (novo), mais "dromo"(percurso, circuito). Palíndromos também podem ser chamados de anacíclicos, ou seja, que voltam em sentido inverso, 
+que refazem inversamente o ciclo.
+
+Alguns especialistas atentam para não confundirmos versos sotádicos com palíndromos. Os versos sotádicos são aqueles que lidos da esquerda para a direita ou da direita para a esquerda, também não alteram seu sentido, 
+como por exemplo:
+
+"Infelizmente morreram todos" = "Todos morreram infelizmente"
+
+O palíndromo configura-se em uma das muitas maneiras de se interagir com a palavra e estaria presente inclusive nas Sagradas Escrituras, quando Adão teria dito sua primeira frase à Eva: "MADAM, I'M ADAM" ("Senhora, eu
+ sou Adão").
+
+Um dos palíndromos mais antigos e conhecidos está em latim: "SATOR AREPO TENET OPERA ROTAS" (O lavrador diligente conhece a rota do arado"). Este é considerado um palíndromo perfeito, pois pode ser lido em qualquer 
+direção, inclusive de cima para baixo ou de baixo para cima. Observe:
+
+O maior palíndromo que se conhece é a palavra finlandesa "SAIPPUAKIVIKAUPPIAS", de dezenove caracteres, que significa "vendedor de soda cáustica". Já a palavra palindrômica mais extensa do nosso idioma é o superlativo
+ de omisso, OMISSÍSSIMO.
+
+Na construção de sentenças, versos e frases o exemplo tido como mais antigo do Brasil é: "ROMA ME TEM AMOR". Depois deste, surgiram vários outros, dentre eles o conhecido: "SOCORRAM-ME, SUBI NO ÔNIBUS EM MARROCOS".
+ Outros dois palíndromos que chamam a atenção pela extensão, são: "ME VÊ SE A PANELA DA MOÇA É DE AÇO MADALENA PAES, E VEM" e "LUZA ROCELINA, A NAMORADA DO MANUEL, LEU NA MODA DA ROMANA: ANIL É COR AZUL".
+
+Existem palíndromos em outros idiomas, além dos já citados em português e inglês, tais como:
+
+- Palíndromo em sueco: "NI TALAR BRA LATIN" (Vocês falam bem latim.)
+
+- Palíndromo em espanhol: "DÁBALE ARROZ A LA ZORRA EL ABAD" (O abade dava arroz à raposa.)
+
+- Palíndromo em latim: "ROMA TIBI SUBITO MOTIBUS IBIT AMOR" (Em Roma o amor lhe virá de repente.)
