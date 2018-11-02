@@ -25,11 +25,9 @@ typedef int bool;
 
 typedef struct arquivos
 {
-    int numero_arq; //serve como contador e como id
     int n_vezes;
     time_t alteracao;
     char *arquivo;  //o diretório de cada arquivo
-    char *arquivo_backup; //o diretório de backup do arquivo
 } arquivo;
 
 

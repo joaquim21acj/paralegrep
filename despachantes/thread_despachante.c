@@ -27,12 +27,10 @@ typedef struct arquivos Arquivo;
 
 struct arquivos
 {
-    int numero_arq; //serve como contador e como id
     time_t alteracao;
     int n_vezes; //Qtas vezes a palavra aparece no arquivo
     char *arquivo;  //o diretório de cada arquivo
     char *caminho_p_arquivo;
-    //char *arquivo_backup;
 };
 
 typedef struct despachantes

@@ -25,11 +25,9 @@ typedef int bool;
 
 typedef struct arquivos
 {
-    int numero_arq; //serve como contador e como id
     int n_vezes;
     time_t alteracao;
     char *arquivo;  //o diretório de cada arquivo
-    char *arquivo_backup; //o diretório de backup do arquivo
 } arquivo;
 
 
@@ -172,7 +170,7 @@ int compara(Palavra *FILA, char *word){
 }
 
 
-int caminho_eh_novo(char *dir, arquivo *lista_arquivos){
+int is_arquivo_on_lista(char *dir, arquivo *lista_arquivos){
     fprintf(stderr, "\nRealizando verificação p saber se o caminho é novo");
     fprintf(stderr, "\nQtd de arquivos: %d", qtd_arq);
     
@@ -185,8 +183,39 @@ int caminho_eh_novo(char *dir, arquivo *lista_arquivos){
     return true;
 }
 
+int retorna_pos_arquivo(char *dir, arquivo *lista_arquivos){
+    int i;
+    for(i=0; i<=qtd_arq; i++){
+        if(strcmp(lista_arquivos[i].arquivo, dir)==0){
+            
+            break;
+        }
+    }
+    fprintf(stderr, "Vai sair com o i: %d", i);
+    return i;
+}
+
 int faz_ranking(arquivo *a, arquivo *lista_arquivos) {  
-    
+    if(is_arquivo_on_lista(a->arquivo, lista_arquivos)){
+        //so vai fazer alguma coisa caso o numero de vezes que a palavra
+        //aparece no arquivo seja diferente do que já estava
+        int pos = retorna_pos_arquivo(a, lista_arquivos);
+        if(lista_arquivos[pos].n_vezes != a->n_vezes){
+            arquivo novo;
+            novo.alteracao=a->alteracao;
+            novo.arquivo=a->arquivo;
+            novo.n_vezes=a->n_vezes;
+            lista_arquivos[pos] = novo;
+            lista_arquivos = ordena(lista_arquivos);
+            chama a função para mostrar novo ranking;
+        }
+    }else{
+        lista_arquivos = funcao_inserir_novo_item(lista_arquivos, a);
+        lista_arquivos = ordena(lista_arquivos);
+        chama a função para mostrar novo ranking;
+
+
+    }
 }
 
 void *trata_thread(arquivo *a)
