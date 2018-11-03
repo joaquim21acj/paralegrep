@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <pthread.h> /* pthread functions and data structures */
 //#include "despachante.h"
+#include "operaria.h"
 #define n_max 100
 
 #ifdef WINDOWS
@@ -23,12 +24,12 @@ typedef int bool;
 #define true 1
 #define false 0
 
-typedef struct arquivos
-{
-    int n_vezes;
-    time_t alteracao;
-    char *arquivo;  //o diretório de cada arquivo
-} arquivo;
+// typedef struct arquivos
+// {
+//     int n_vezes;
+//     time_t alteracao;
+//     char *arquivo;  //o diretório de cada arquivo
+// } arquivo;
 
 
 int qtd_itens_fila=0;
@@ -40,16 +41,16 @@ struct palavra{
     Palavra *prox;
 }; 
 
-typedef struct operarias
+typedef struct ranking
 {
     int id;
-    pthread_t t_o;
+    pthread_t t_r;
     char dir;     //diretório de análise dos arquivos
     char *termo;
     arquivo a;
-} operaria;
+} ranking;
 
-operaria t_o; //inicialização global da única thread despachante
+ranking t_r; //inicialização global da única thread despachante
 
 int qtd_arq = 1;
 int tam;
@@ -154,7 +155,7 @@ int faz_ranking(arquivo *a, arquivo *lista_arquivos) {
         }
 }
 
-void *trata_thread(arquivo *a)
+void *trata_thread_ranking(arquivo *a)
 {
     arquivo lista_arquivos[n_max];
     lista_arquivos[0].arquivo="";
@@ -186,7 +187,7 @@ int main()
 
     printf("\nA criar uma nova thread\n");
     //printf("\n Diretório do programa: %s\n", diretorio_prog);
-    flag = pthread_create(&t_o.t_o, NULL, trata_thread(a), NULL);
+    flag = pthread_create(&t_r.t_r, NULL, trata_thread_ranking(a), NULL);
 
     if (flag != 0)
         printf("\nErro na criação da thread despachante thread\n");

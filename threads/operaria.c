@@ -5,6 +5,7 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <pthread.h> /* pthread functions and data structures */
+#include "ranking.h"
 //#include "despachante.h"
 #define n_max 100
 
@@ -23,12 +24,14 @@ typedef int bool;
 #define true 1
 #define false 0
 
-typedef struct arquivos
-{
+typedef struct arquivos arquivo;
+
+struct arquivos{
     int n_vezes;
     time_t alteracao;
     char *arquivo;  //o diretório de cada arquivo
-} arquivo;
+    char *caminho_p_arquivo;
+};
 
 
 int qtd_itens_fila=0;
@@ -188,12 +191,10 @@ int ocorrencias(arquivo *a, char *word) {
     }
 
     /*Início da leitura e contagem*/
-    /*Estou seguindo este tutorial
-    https://www.cprogressivo.net/2014/05/Filas-em-C-Como-Programar-Tutorial-Estrutura-de-Dados-Dinamica-Queue.html*/
+    /*Estou seguindo este tutorial*/
     int ch = fgetc(_arquivo_);
     while (ch != EOF){
         if((ch == 32)||(ch == 10)){
-            fprintf(stderr, "\nEntrou no if do espaço com %d itens na fila\n", qtd_itens_fila);
             Palavra *tmp = FILA->prox;
             int contador=0;
             while (contador<qtd_itens_fila){
@@ -212,47 +213,39 @@ int ocorrencias(arquivo *a, char *word) {
         //fputc(ch, _arquivo_backup_);
         ch = fgetc(_arquivo_);
         }
-        fprintf(stderr, "\nQuantidades de vezes que a pal. aparece no arquivo: %d", a->n_vezes);
         libera(FILA);  
+        trata_thread_ranking(a);
 }
 
-void *trata_thread(arquivo *a)
+void *trata_thread_operaria(arquivo *a, char *argumento)
 {
-
-    while (1)
-    {   
-        fprintf(stderr, "\nIniciando nova busca\n");
-        //printf("\n\n\n Iniciando nova busca");
-        ocorrencias(a, "asdf");
-        sleep(5); /*espera 5 segundos e executa de novo*/
-    }
-
-    //pthread_exit(NULL);
-}
-
-int main()
-{
-    int flag;
-    char diretorio_prog[FILENAME_MAX];
-    GetCurrentDir(diretorio_prog, FILENAME_MAX );
-
-    /*A função terá que receber da thread despachante o 
-    arquivo para que a thread operária tenha mais controle*/
-    arquivo *a = (arquivo *) malloc(sizeof(arquivo));
-    a->arquivo = fileset;
-    a->n_vezes=0;
-
-
-    printf("\nA criar uma nova thread\n");
-    //printf("\n Diretório do programa: %s\n", diretorio_prog);
-    flag = pthread_create(&t_o.t_o, NULL, trata_thread(a), NULL);
-
-    if (flag != 0)
-        printf("\nErro na criação da thread despachante thread\n");
-
-    //trata_thread(NULL);
-
+    ocorrencias(a, argumento);
     pthread_exit(NULL);
-
-    return 0; /* O programa não vai chegar aqui.         */
 }
+
+// int main()
+// {
+//     int flag;
+//     char diretorio_prog[FILENAME_MAX];
+//     GetCurrentDir(diretorio_prog, FILENAME_MAX );
+
+//     /*A função terá que receber da thread despachante o 
+//     arquivo para que a thread operária tenha mais controle*/
+//     arquivo *a = (arquivo *) malloc(sizeof(arquivo));
+//     a->arquivo = fileset;
+//     a->n_vezes=0;
+
+
+//     printf("\nA criar uma nova thread\n");
+//     //printf("\n Diretório do programa: %s\n", diretorio_prog);
+//     flag = pthread_create(&t_o.t_o, NULL, trata_thread_operaria(a), NULL);
+
+//     if (flag != 0)
+//         printf("\nErro na criação da thread despachante thread\n");
+
+//     //trata_thread(NULL);
+
+//     pthread_exit(NULL);
+
+//     return 0; /* O programa não vai chegar aqui.         */
+// }
