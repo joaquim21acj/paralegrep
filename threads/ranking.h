@@ -4,15 +4,22 @@
 #include <pthread.h> 
 #include "operaria.h"
 
-typedef struct ranking
-{
+struct rankings{
     int id;
     pthread_t t_r;
     char dir;     //diretório de análise dos arquivos
     char *termo;
-    arquivo a;
-} ranking;
+    struct arquivo a;
+} ;
 
-void *trata_thread_ranking(arquivo *a);
+struct palavra{
+    int letra;
+    struct palavra *prox;
+}; 
+void inicia(struct palavra *FILA);
+
+int vazia(struct palavra *FILA);
+
+void *trata_thread_ranking(struct arquivo *a);
 
 #endif

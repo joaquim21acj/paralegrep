@@ -5,7 +5,6 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <pthread.h> /* pthread functions and data structures */
-//#include "despachante.h"
 #include "operaria.h"
 #define n_max 100
 
@@ -32,31 +31,27 @@ typedef int bool;
 // } arquivo;
 
 
-int qtd_itens_fila=0;
-
-typedef struct palavra Palavra;
+int qtd_itens_fila_r=0;
 
 struct palavra{
     int letra;
-    Palavra *prox;
+    struct palavra *prox;
 }; 
 
-typedef struct ranking
-{
+struct rankings{
     int id;
     pthread_t t_r;
     char dir;     //diretório de análise dos arquivos
     char *termo;
-    arquivo a;
-} ranking;
+    struct arquivo a;
+};
+struct rankings t_r; //inicialização global da única thread despachante
 
-ranking t_r; //inicialização global da única thread despachante
-
-int qtd_arq = 1;
+int qtd_arq_r = 1;
 int tam;
 
 /*Verifica se a lista está vazia*/
-int vazia(Palavra *FILA)
+int vazia(struct palavra *FILA)
 {
 	if(FILA->prox == NULL)
 		return true;
@@ -64,15 +59,15 @@ int vazia(Palavra *FILA)
 		return false;
 }
 
-void inicia(Palavra *FILA){
+void inicia(struct palavra *FILA){
 	FILA->prox = NULL;
 	tam=0;
 }
-int is_arquivo_on_lista(char *dir, arquivo *lista_arquivos){
+int is_arquivo_on_lista(char *dir, struct arquivo *lista_arquivos){
     fprintf(stderr, "\nRealizando verificação p saber se o caminho é novo");
-    fprintf(stderr, "\nQtd de arquivos: %d", qtd_arq);
+    fprintf(stderr, "\nQtd de arquivos: %d", qtd_arq_r);
     
-    for(int i=0; i<qtd_arq; i++){
+    for(int i=0; i<qtd_arq_r; i++){
         fprintf(stderr, "\nDir de comp dir: %s e tmp->arq: %s", dir, lista_arquivos[i].arquivo);
         if(strcmp(dir, lista_arquivos[i].arquivo)==0){
             return true;
@@ -81,9 +76,9 @@ int is_arquivo_on_lista(char *dir, arquivo *lista_arquivos){
     return false;
 }
 
-int retorna_pos_arquivo(char *dir, arquivo *lista_arquivos){
+int retorna_pos_arquivo(char *dir, struct arquivo *lista_arquivos){
     int i;
-    for(i=0; i<=qtd_arq; i++){
+    for(i=0; i<=qtd_arq_r; i++){
         if(strcmp(lista_arquivos[i].arquivo, dir)==0){
             
             break;
@@ -93,7 +88,7 @@ int retorna_pos_arquivo(char *dir, arquivo *lista_arquivos){
     return i;
 }
 
-void ordena(arquivo *lista_arquivos, int tam)  
+void ordena(struct arquivo *lista_arquivos, int tam)  
 {  
   int i, j, min, swap;
   for (i = 0; i > (tam-1); i++)
@@ -112,52 +107,52 @@ void ordena(arquivo *lista_arquivos, int tam)
   }
 }
 
-void imprime_top_10(arquivo *lista_arquivos){
+void imprime_top_10(struct arquivo *lista_arquivos){
     fprintf(stderr, "\nIniciando impressão da ordem de acordo com a quantidades de vezes");
-    for (int i=0; i<qtd_arq; i++){
-        fprintf(stderr, "\n Posicao %d : %d", i,lista_arquivos[qtd_arq].n_vezes);
+    for (int i=0; i<qtd_arq_r; i++){
+        fprintf(stderr, "\n Posicao %d : %d", i,lista_arquivos[qtd_arq_r].n_vezes);
     }
 }
 
-arquivo *funcao_inserir_novo_item(arquivo *lista_arquivos, arquivo a){
-    fprintf(stderr, "\nQuantidades de itens na lista: %d", qtd_arq);
-    if(qtd_arq>=n_max){
+struct arquivo *funcao_inserir_novo_item(struct arquivo *lista_arquivos, struct arquivo a){
+    fprintf(stderr, "\nQuantidades de itens na lista: %d", qtd_arq_r);
+    if(qtd_arq_r>=n_max){
         fprintf(stderr, "Não foi possível adicionar outro item a lista");
         exit(1);
     }    
-    lista_arquivos[qtd_arq]=a;
-    qtd_arq++;
+    lista_arquivos[qtd_arq_r]=a;
+    qtd_arq_r++;
     return lista_arquivos;
 }
 
-int faz_ranking(arquivo *a, arquivo *lista_arquivos) {  
+void faz_ranking(struct arquivo *a, struct arquivo *lista_arquivos) {  
         if(is_arquivo_on_lista(a->arquivo, lista_arquivos)==true){
             //so vai fazer alguma coisa caso o numero de vezes que a palavra
             //aparece no arquivo seja diferente do que já estava
             int pos = retorna_pos_arquivo(a->arquivo, lista_arquivos);
             if(lista_arquivos[pos].n_vezes != a->n_vezes){
-                arquivo novo;
+                struct arquivo novo;
                 novo.alteracao=a->alteracao;
                 novo.arquivo=a->arquivo;
                 novo.n_vezes=a->n_vezes;
                 lista_arquivos[pos] = novo;
-                ordena(lista_arquivos, qtd_arq);
+                ordena(lista_arquivos, qtd_arq_r);
                 imprime_top_10(lista_arquivos);
             }
         }else{
-            arquivo novo;
+            struct arquivo novo;
             novo.alteracao=a->alteracao;
             novo.arquivo=a->arquivo;
             novo.n_vezes=a->n_vezes;
             lista_arquivos = funcao_inserir_novo_item(lista_arquivos, novo);
-            ordena(lista_arquivos, qtd_arq);
+            ordena(lista_arquivos, qtd_arq_r);
             imprime_top_10(lista_arquivos);
         }
 }
 
-void *trata_thread_ranking(arquivo *a)
+void *trata_thread_ranking(struct arquivo *a)
 {
-    arquivo lista_arquivos[n_max];
+    struct arquivo lista_arquivos[n_max];
     lista_arquivos[0].arquivo="";
     
 
@@ -172,29 +167,29 @@ void *trata_thread_ranking(arquivo *a)
     //pthread_exit(NULL);
 }
 
-int main()
-{
-    int flag;
-    char diretorio_prog[FILENAME_MAX];
-    GetCurrentDir(diretorio_prog, FILENAME_MAX );
+// int main()
+// {
+//     int flag;
+//     char diretorio_prog[FILENAME_MAX];
+//     GetCurrentDir(diretorio_prog, FILENAME_MAX );
 
-    /*A função terá que receber da thread despachante o 
-    arquivo para que a thread operária tenha mais controle*/
-    arquivo *a = (arquivo *) malloc(sizeof(arquivo));
-    a->arquivo = fileset;
-    a->n_vezes=0;
+//     /*A função terá que receber da thread despachante o 
+//     arquivo para que a thread operária tenha mais controle*/
+//     arquivo *a = (arquivo *) malloc(sizeof(arquivo));
+//     a->arquivo = fileset;
+//     a->n_vezes=0;
 
 
-    printf("\nA criar uma nova thread\n");
-    //printf("\n Diretório do programa: %s\n", diretorio_prog);
-    flag = pthread_create(&t_r.t_r, NULL, trata_thread_ranking(a), NULL);
+//     printf("\nA criar uma nova thread\n");
+//     //printf("\n Diretório do programa: %s\n", diretorio_prog);
+//     flag = pthread_create(&t_r.t_r, NULL, trata_thread_ranking(a), NULL);
 
-    if (flag != 0)
-        printf("\nErro na criação da thread despachante thread\n");
+//     if (flag != 0)
+//         printf("\nErro na criação da thread despachante thread\n");
 
-    //trata_thread(NULL);
+//     //trata_thread(NULL);
 
-    pthread_exit(NULL);
+//     pthread_exit(NULL);
 
-    return 0; /* O programa não vai chegar aqui.         */
-}
+//     return 0; /* O programa não vai chegar aqui.         */
+// }

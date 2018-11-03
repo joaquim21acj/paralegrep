@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <pthread.h> /* pthread functions and data structures */
 #include "operaria.h"
+#include "ranking.h"
 //#include "despachante.h"
 #define n_max 100
 
@@ -44,7 +45,7 @@ typedef struct despachantes
 
 despachante t_d; //inicialização global da única thread despachante
 
-int qtd_arq = 0;
+int qtd_arq_d = 0;
 
 /*Função para concatenar ponteiro char*/
 char * concatenar(char *original, char *add) {
@@ -60,9 +61,9 @@ char * concatenar(char *original, char *add) {
 
 
 
-int retorna_pos_arquivo(char *dir, arquivo *lista_arquivos){
+int retorna_pos_arquivo_d(char *dir, struct arquivo *lista_arquivos){
     int i;
-    for(i=0; i<=qtd_arq; i++){
+    for(i=0; i<=qtd_arq_d; i++){
         if(strcmp(lista_arquivos[i].arquivo, dir)==0){
             
             break;
@@ -73,15 +74,15 @@ int retorna_pos_arquivo(char *dir, arquivo *lista_arquivos){
 }
 
 /*Esta função realiza a inserção de novos arquivos na lista de arquivos da thread*/
-arquivo insere_arquivo(arquivo *lista_arquivos, char *dir_arq, char *nome_arq, int is_novo)
+struct arquivo insere_arquivo(struct arquivo *lista_arquivos, char *dir_arq, char *nome_arq, int is_novo)
 {
-    if(qtd_arq==(n_max-1)){
+    if(qtd_arq_d==(n_max-1)){
         fprintf(stderr, "Foi atingido o tamanho máximo de arquivos");
 
         exit(1);
     }
 
-    arquivo novo;
+    struct arquivo novo;
     //Caso não consiga criar um novo dado retorna nulo
                
         novo.arquivo = nome_arq;
@@ -104,24 +105,24 @@ arquivo insere_arquivo(arquivo *lista_arquivos, char *dir_arq, char *nome_arq, i
         se for um novo coloca na proxima posição
         se for atualização coloca na posição antiga*/
         if(is_novo==false){
-            int pos = retorna_pos_arquivo(nome_arq, lista_arquivos);
+            int pos = retorna_pos_arquivo_d(nome_arq, lista_arquivos);
             lista_arquivos[pos]=novo;
             fprintf(stderr, "\narquivo atualizado %s", lista_arquivos[pos].arquivo);
         }else{
-            lista_arquivos[qtd_arq]=novo;
-            qtd_arq++;
-            fprintf(stderr, "\nFoi inserido um novo arquivo na lista %s", lista_arquivos[qtd_arq-1].arquivo);
+            lista_arquivos[qtd_arq_d]=novo;
+            qtd_arq_d++;
+            fprintf(stderr, "\nFoi inserido um novo arquivo na lista %s", lista_arquivos[qtd_arq_d-1].arquivo);
         }
 
 
         return novo;
 }
 
-int caminho_eh_novo(char *dir, arquivo *lista_arquivos){
+int caminho_eh_novo(char *dir, struct arquivo *lista_arquivos){
     fprintf(stderr, "\nRealizando verificação p saber se o caminho é novo");
-    fprintf(stderr, "\nQtd de arquivos: %d", qtd_arq);
+    fprintf(stderr, "\nQtd de arquivos: %d", qtd_arq_d);
     
-    for(int i=0; i<qtd_arq; i++){
+    for(int i=0; i<qtd_arq_d; i++){
         fprintf(stderr, "\nDir de comp dir: %s e tmp->arq: %s", dir, lista_arquivos[i].arquivo);
         if(strcmp(dir, lista_arquivos[i].arquivo)==0){
             return false;
@@ -130,10 +131,10 @@ int caminho_eh_novo(char *dir, arquivo *lista_arquivos){
     return true;
 }
 
-int arquivo_foi_modificado(arquivo *lista_arquivos, char *dir){
+int arquivo_foi_modificado(struct arquivo *lista_arquivos, char *dir){
     struct stat st; 
     int i;
-    for(i=0; i<=qtd_arq; i++){
+    for(i=0; i<=qtd_arq_d; i++){
         fprintf(stderr, "\n Indo comparar a lista: %s  e o dir %s",lista_arquivos[i].arquivo, dir);
         if(strcmp(lista_arquivos[i].arquivo, dir)==0){
             char *diretorio = lista_arquivos[i].caminho_p_arquivo;
@@ -148,14 +149,14 @@ int arquivo_foi_modificado(arquivo *lista_arquivos, char *dir){
     }
     fprintf(stderr, "Saiu com o i: %d", i);
 
-    time_t t = st.st_mtime; /*st_mtime is type time_t */
+    //time_t t = st.st_mtime; /*st_mtime is type time_t */
     if (st.st_mtime > lista_arquivos[i].alteracao){
         return true;
-    }else{
+    }else{  
         return false;
     }
 }
-int acorda_thread_operaria(arquivo *a, char *argumento){
+void acorda_thread_operaria(struct arquivo *a, char *argumento){
     pthread_t t_o[10];
     int i;
     for(i=0; i<10; i++){
@@ -165,7 +166,7 @@ int acorda_thread_operaria(arquivo *a, char *argumento){
     }
 }
 
-void vasculha_dir(char *dir_int, int prof, arquivo *lista_arquivos, char *argumento){
+void vasculha_dir(char *dir_int, int prof, struct arquivo *lista_arquivos, char *argumento){
     DIR *d;
     struct dirent *dir;
     d = opendir(dir_int);
@@ -178,14 +179,14 @@ void vasculha_dir(char *dir_int, int prof, arquivo *lista_arquivos, char *argume
 
             if(caminho_eh_novo(dir->d_name, lista_arquivos)){
                 fprintf(stderr, "\nCaminho é novo");
-                arquivo novo_arquivo = insere_arquivo(lista_arquivos, dir_int, dir->d_name, true);
-                arquivo *a_n = &novo_arquivo;
+                struct arquivo novo_arquivo = insere_arquivo(lista_arquivos, dir_int, dir->d_name, true);
+                struct arquivo *a_n = &novo_arquivo;
                 acorda_thread_operaria(a_n, argumento);
             }else{
                 if(arquivo_foi_modificado(lista_arquivos, dir->d_name)){
                     fprintf(stderr, "\narquivo foi alterado");
-                    arquivo novo_arquivo =insere_arquivo(lista_arquivos, dir_int, dir->d_name, false);
-                    arquivo *a_n = &novo_arquivo;
+                    struct arquivo novo_arquivo =insere_arquivo(lista_arquivos, dir_int, dir->d_name, false);
+                    struct arquivo *a_n = &novo_arquivo;
                     acorda_thread_operaria(a_n, argumento);
                 }else{
                     fprintf(stderr, "\narquivo não foi modificado");
@@ -216,7 +217,7 @@ void ler_arquivos(char *argv, char *tip_open)
 
 void *trata_thread(char *caminho, char *argumento)
 {
-    arquivo lista_arquivos[n_max];
+    struct arquivo lista_arquivos[n_max];
     /*
         lista_arquivos = insere_arqu#define fileset "/home/joaquim/ifb/so/paralegrep/fileset/"ivo(lista_arquivos, )
         colocar essa linha de código na parte que reconhece os arquivos
@@ -231,20 +232,20 @@ void *trata_thread(char *caminho, char *argumento)
     //pthread_exit(NULL);
 }
 
-int main()
-{
-    int flag;
-    char diretorio_prog[FILENAME_MAX];
-    GetCurrentDir(diretorio_prog, FILENAME_MAX );
+// int main()
+// {
+//     int flag;
+//     char diretorio_prog[FILENAME_MAX];
+//     GetCurrentDir(diretorio_prog, FILENAME_MAX );
 
-    char *argumento;
+//     char *argumento;
 
-    printf("\nA criar uma nova thread\n");
-    printf("\n Diretório do programa: %s\n", diretorio_prog);
-    flag = pthread_create(&t_d.t_d, NULL, trata_thread(fileset, argumento), NULL);
-    //trata_thread(NULL);
+//     printf("\nA criar uma nova thread\n");
+//     printf("\n Diretório do programa: %s\n", diretorio_prog);
+//     flag = pthread_create(&t_d.t_d, NULL, trata_thread(fileset, argumento), NULL);
+//     //trata_thread(NULL);
 
-    pthread_exit(NULL);
+//     pthread_exit(NULL);
 
-    return 0; /* O programa não vai chegar aqui.         */
-}
+//     return 0; /* O programa não vai chegar aqui.         */
+// }

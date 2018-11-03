@@ -34,49 +34,24 @@ struct arquivos{
 };
 
 
-int qtd_itens_fila=0;
+int qtd_itens_fila_o=0;
 
-typedef struct palavra Palavra;
+struct operaria t_o; //inicialização global da única thread operaria
 
-struct palavra{
-    int letra;
-    Palavra *prox;
-}; 
-
-typedef struct operarias
-{
-    int id;
-    pthread_t t_o;
-    char dir;     //diretório de análise dos arquivos
-    char *termo;
-    arquivo a;
-} operaria;
-
-operaria t_o; //inicialização global da única thread despachante
-
-int qtd_arq = 0;
+int qtd_arq_o = 0;
 int tam;
 
-/*Verifica se a lista está vazia*/
-int vazia(Palavra *FILA)
-{
-	if(FILA->prox == NULL)
-		return true;
-	else
-		return false;
-}
-
 /*Inicializa a lista encadeada de arquivos*/
-Palavra* lst_cria(Palavra *FILA)
+void lst_cria(struct palavra *FILA)
 {
     FILA->prox = NULL;
 	tam=0;
 }
 
 
-Palavra *aloca()
+struct palavra *aloca()
 {
-	Palavra *novo=(Palavra *) malloc(sizeof(Palavra));
+	struct palavra *novo=(struct palavra *) malloc(sizeof(struct palavra));
 	if(!novo){
 		fprintf(stderr, "\nSem memoria disponivel!\n");
 		exit(1);
@@ -86,34 +61,34 @@ Palavra *aloca()
 }
 
 
-void libera(Palavra *FILA)
+void libera(struct palavra *FILA)
 {   
 	if(!vazia(FILA)){
-		Palavra *proxNode, *atual;
+		struct palavra *proxNode, *atual;
 
 		atual = FILA->prox;
         int contador=0;
-		while(contador<qtd_itens_fila){
-			if(contador<qtd_itens_fila-1){
+		while(contador<qtd_itens_fila_o){
+			if(contador<qtd_itens_fila_o-1){
                 proxNode = atual->prox;
             }else{
                 proxNode = NULL;
             }
                 
 			free(atual);
-            if(contador<qtd_itens_fila-1) atual = proxNode;
+            if(contador<qtd_itens_fila_o-1) atual = proxNode;
             contador++;
 		}
 	}
-    qtd_itens_fila=0;
+    qtd_itens_fila_o=0;
     FILA->prox=NULL;
 }
 
 /*Esta função realiza a inserção de caracteres na fila*/
-void insere_caracter(Palavra *FILA, int valor)
+void insere_caracter(struct palavra *FILA, int valor)
 {
     
-    Palavra *novo = aloca();
+    struct palavra *novo = aloca();
     
     novo->prox=NULL;
     
@@ -125,43 +100,38 @@ void insere_caracter(Palavra *FILA, int valor)
         //fprintf(stderr, "\nEntrou nO IF  valor do fila: %d\n", FILA->prox->letra);
     } 
     else{
-        Palavra *tmp = FILA->prox;
+        struct palavra *tmp = FILA->prox;
         while(tmp->prox != NULL) {
             tmp = tmp->prox;
         }
         tmp->prox = novo;
-        // Palavra *tmp = FILA->prox;
+        // struct palavra *tmp = FILA->prox;
         // while(tmp != NULL) {
         //     tmp = tmp->prox;
         // }
         // tmp = novo;
     }
-    qtd_itens_fila++;
+    qtd_itens_fila_o++;
 }
 
-void inicia(Palavra *FILA){
-	FILA->prox = NULL;
-	tam=0;
-}
-
-int compara(Palavra *FILA, char *word){
+int compara(struct palavra *FILA, char *word){
     fprintf(stderr, "\nIniciando a comparacao\n");
     if(vazia(FILA)){
 		fprintf(stderr, "\nFila vazia!\n\n");
 		return false;
 	}
-    char s[qtd_itens_fila];
-    memset( s, 0x0, qtd_itens_fila);
+    char s[qtd_itens_fila_o];
+    memset( s, 0x0, qtd_itens_fila_o);
 
-   	Palavra *tmp;
+   	struct palavra *tmp;
 	tmp = FILA->prox;
-    for(int i=0; i<qtd_itens_fila; i++){
+    for(int i=0; i<qtd_itens_fila_o; i++){
         s[i]=tmp->letra;
         
         tmp=tmp->prox;
     }
 
-    int rc = strncmp(s, word, qtd_itens_fila);
+    int rc = strncmp(s, word, qtd_itens_fila_o);
     
     if(rc==0){
         fprintf(stderr,"\n A comp entre s: %s e word: %s foi igual", s, word);
@@ -172,7 +142,7 @@ int compara(Palavra *FILA, char *word){
     }
 }
 
-int ocorrencias(arquivo *a, char *word) {  
+void ocorrencias(struct arquivo *a, char *word) {  
     fprintf(stderr, "\nIniciando contagem de ocorrencias no arquivo\n");
     FILE *_arquivo_;
     _arquivo_ = fopen(a->arquivo, "r");
@@ -182,7 +152,7 @@ int ocorrencias(arquivo *a, char *word) {
     }
 
     /*Criação da fila que simboliza a palavra*/
-    Palavra *FILA = (Palavra *) malloc(sizeof(Palavra));
+    struct palavra *FILA = (struct palavra *) malloc(sizeof(struct palavra));
     if(!FILA){
         fprintf(stderr, "\nNão foi possível criar!\n\nSem memória!\n\n\n");
         exit(1);
@@ -195,9 +165,9 @@ int ocorrencias(arquivo *a, char *word) {
     int ch = fgetc(_arquivo_);
     while (ch != EOF){
         if((ch == 32)||(ch == 10)){
-            Palavra *tmp = FILA->prox;
+            struct palavra *tmp = FILA->prox;
             int contador=0;
-            while (contador<qtd_itens_fila){
+            while (contador<qtd_itens_fila_o){
                 tmp=tmp->prox;
                 contador++;
             }            
@@ -217,7 +187,7 @@ int ocorrencias(arquivo *a, char *word) {
         trata_thread_ranking(a);
 }
 
-void *trata_thread_operaria(arquivo *a, char *argumento)
+void *trata_thread_operaria(struct arquivo *a, char *argumento)
 {
     ocorrencias(a, argumento);
     pthread_exit(NULL);
