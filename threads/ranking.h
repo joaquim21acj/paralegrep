@@ -20,6 +20,6 @@ void inicia(struct palavra *FILA);
 
 int vazia(struct palavra *FILA);
 
-void *trata_thread_ranking(struct arquivo *a);
+void *trata_thread_ranking(struct arquivo *a, struct arquivo *lista_arquivos);
 
 #endif

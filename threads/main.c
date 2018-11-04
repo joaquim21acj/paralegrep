@@ -31,9 +31,11 @@ struct operaria t_o; //inicialização global da única thread operaria
 
 pthread_t t_o;
 
+pthread_t t_r;
+
 int main()
 {
-    int flag;
+    int flag_operaria;
     char diretorio_prog[FILENAME_MAX];
     GetCurrentDir(diretorio_prog, FILENAME_MAX );
 
@@ -44,15 +46,18 @@ int main()
     a->n_vezes=0;
 
 
+    struct arquivo lista_arquivos[n_max];
+    lista_arquivos[0].arquivo="";
+    lista_arquivos[0].n_vezes=0;
+
     printf("\nA criar uma nova thread\n");
     //printf("\n Diretório do programa: %s\n", diretorio_prog);
-    flag = pthread_create(&t_o, NULL, trata_thread_operaria(a, "para"), NULL);
+    flag_operaria = pthread_create(&t_o, NULL, trata_thread_operaria(a, "para", lista_arquivos), NULL);
 
-    if (flag != 0)
-        printf("\nErro na criação da thread despachante thread\n");
+    if (flag_operaria != 0)
+        printf("\nErro na criação da thread operaria thread\n");
 
     //trata_thread(NULL);
 
-    pthread_exit(NULL);
     return 0; /* O programa não vai chegar aqui.         */
 }

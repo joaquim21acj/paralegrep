@@ -163,7 +163,7 @@ int is_caractere(int ch){
     else return true;
 }
 
-void ocorrencias(struct arquivo *a, char *word) {  
+void ocorrencias(struct arquivo *a, char *word, struct arquivo *lista_arquivos) {  
     fprintf(stderr, "\nIniciando contagem de ocorrencias no arquivo\n");
     FILE *_arquivo_;
     _arquivo_ = fopen(a->arquivo, "r");
@@ -207,13 +207,15 @@ void ocorrencias(struct arquivo *a, char *word) {
         ch = fgetc(_arquivo_);
         }
         libera(FILA);  
-        trata_thread_ranking(a);
+        trata_thread_ranking(a, lista_arquivos);
 }
 
-void *trata_thread_operaria(struct arquivo *a, char *argumento)
-{
-    ocorrencias(a, argumento);
+void *trata_thread_operaria(struct arquivo *a, char *argumento, struct arquivo *lista_arquivos, int *is_alive)
+{   
+    is_alive = true;
+    ocorrencias(a, argumento, lista_arquivos);
     pthread_exit(NULL);
+    is_alive = false;
 }
 
 // int main()

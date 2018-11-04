@@ -35,12 +35,16 @@ typedef int bool;
 //     char *caminho_p_arquivo;
 // };
 
+
+
 typedef struct despachantes
 {
     int id;
     pthread_t t_d;
     char dir;     //diretório de análise dos arquivos
-    int t_op[10]; //numero de threads operarias funcionando
+    pthread_t t_o[10]; //numero de threads operarias funcionando
+    pthread_mutex_t mutex[10];
+    int is_alive[10];
 } despachante;
 
 despachante t_d; //inicialização global da única thread despachante
@@ -156,17 +160,17 @@ int arquivo_foi_modificado(struct arquivo *lista_arquivos, char *dir){
         return false;
     }
 }
-void acorda_thread_operaria(struct arquivo *a, char *argumento){
-    pthread_t t_o[10];
+void acorda_thread_operaria(struct arquivo *a, char *argumento, struct arquivo *lista_ranking){
     int i;
-    for(i=0; i<10; i++){
-        if(t_o[i]!=0){
-            pthread_create(&t_o[i], NULL, trata_thread_operaria(a, argumento), NULL);
+
+    for (int i=0; i<10; i++){
+        if(t_d.is_alive[i]==false){
+            pthread_create(&t_d.t_o[i], NULL, trata_thread_operaria(a, argumento, lista_ranking, t_d.is_alive[i]), NULL);
         }
     }
 }
 
-void vasculha_dir(char *dir_int, int prof, struct arquivo *lista_arquivos, char *argumento){
+void vasculha_dir(char *dir_int, int prof, struct arquivo *lista_arquivos, char *argumento, struct arquivo *lista_ranking){
     DIR *d;
     struct dirent *dir;
     d = opendir(dir_int);
@@ -181,13 +185,13 @@ void vasculha_dir(char *dir_int, int prof, struct arquivo *lista_arquivos, char 
                 fprintf(stderr, "\nCaminho é novo");
                 struct arquivo novo_arquivo = insere_arquivo(lista_arquivos, dir_int, dir->d_name, true);
                 struct arquivo *a_n = &novo_arquivo;
-                acorda_thread_operaria(a_n, argumento);
+                acorda_thread_operaria(a_n, argumento, lista_ranking);
             }else{
                 if(arquivo_foi_modificado(lista_arquivos, dir->d_name)){
                     fprintf(stderr, "\narquivo foi alterado");
                     struct arquivo novo_arquivo =insere_arquivo(lista_arquivos, dir_int, dir->d_name, false);
                     struct arquivo *a_n = &novo_arquivo;
-                    acorda_thread_operaria(a_n, argumento);
+                    acorda_thread_operaria(a_n, argumento, lista_ranking);
                 }else{
                     fprintf(stderr, "\narquivo não foi modificado");
                 }
@@ -215,8 +219,9 @@ void ler_arquivos(char *argv, char *tip_open)
     fclose(file);
 }
 
-void *trata_thread(char *caminho, char *argumento)
-{
+void *trata_thread(char *caminho, char *argumento, struct arquivo *lista_ranking)
+{   
+    
     struct arquivo lista_arquivos[n_max];
     /*
         lista_arquivos = insere_arqu#define fileset "/home/joaquim/ifb/so/paralegrep/fileset/"ivo(lista_arquivos, )
@@ -225,7 +230,7 @@ void *trata_thread(char *caminho, char *argumento)
     */
     while (1)
     {  
-        vasculha_dir(caminho, 0, lista_arquivos, argumento);
+        vasculha_dir(caminho, 0, lista_arquivos, argumento, lista_ranking);
         sleep(5); /*espera 5 segundos e executa de novo*/
     }
 

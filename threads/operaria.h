@@ -25,6 +25,6 @@ int threads_operarias[10];
 char *dir_trabalho;
 
 
-void *trata_thread_operaria(struct arquivo *a, char *argumento);
+void *trata_thread_operaria(struct arquivo *a, char *argumento, struct arquivo *lista_arquivos, int *is_alive);
 
 #endif // FOO_H_

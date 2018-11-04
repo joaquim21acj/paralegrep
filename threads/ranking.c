@@ -29,7 +29,7 @@ typedef int bool;
 //     time_t alteracao;
 //     char *arquivo;  //o diretório de cada arquivo
 // } arquivo;
-
+pthread_mutex_t lock;
 
 int qtd_itens_fila_r=0;
 
@@ -92,21 +92,15 @@ int retorna_pos_arquivo(char *dir, struct arquivo *lista_arquivos){
 /*Esta função ta ordenando o menor primeiro, mas deveria ordenar para o maior primeiro*/
 void ordena(struct arquivo *lista_arquivos, int tam)  
 {  
-  int i, j, min, swap;
-  for (i = 0; i > (tam-1); i++)
-   {
-    min = i;
-    for (j = (i+1); j > tam; j++) {
-      if(lista_arquivos[j].n_vezes > lista_arquivos[min].n_vezes) {
-        min = j;
-      }
+for (int i = 1; i < tam; i++) {
+    for (int j = 0; j < i; j++) {
+        if (lista_arquivos[i].n_vezes > lista_arquivos[j].n_vezes) {
+            struct arquivo temp = lista_arquivos[i];
+            lista_arquivos[i] = lista_arquivos[j];
+            lista_arquivos[j] = temp;
+        }
     }
-    if (i != min) {
-      swap = lista_arquivos[i].n_vezes;
-      lista_arquivos[i].n_vezes = lista_arquivos[min].n_vezes;
-      lista_arquivos[min].n_vezes = swap;
-    }
-  }
+}
     fprintf(stderr, "\n ordenou e o primeiro item foi o %s", lista_arquivos[0].arquivo);
     fprintf(stderr, "\n ordenou e o primeiro item foi o %s", lista_arquivos[1].arquivo);
 }
@@ -114,7 +108,7 @@ void ordena(struct arquivo *lista_arquivos, int tam)
 void imprime_top_10(struct arquivo *lista_arquivos){
     fprintf(stderr, "\nIniciando impressão da ordem de acordo com a quantidades de vezes");
     for (int i=0; i<qtd_arq_r; i++){
-        fprintf(stderr, "\n Posicao %d : %d", i,lista_arquivos[qtd_arq_r].n_vezes);
+        fprintf(stderr, "\n Posicao %d : arquivo: %s n_vezes: %d", i, lista_arquivos[i].arquivo, lista_arquivos[i].n_vezes);
     }
 }
 
@@ -142,6 +136,7 @@ void faz_ranking(struct arquivo *a, struct arquivo *lista_arquivos) {
                 novo.n_vezes=a->n_vezes;
                 lista_arquivos[pos] = novo;
                 ordena(lista_arquivos, qtd_arq_r);
+                a = NULL;
                 imprime_top_10(lista_arquivos);
             }
         }else{
@@ -151,14 +146,21 @@ void faz_ranking(struct arquivo *a, struct arquivo *lista_arquivos) {
             novo.n_vezes=a->n_vezes;
             lista_arquivos = funcao_inserir_novo_item(lista_arquivos, novo);
             ordena(lista_arquivos, qtd_arq_r);
+            a = NULL;
             imprime_top_10(lista_arquivos);
         }
 }
 
-void *trata_thread_ranking(struct arquivo *a)
+int is_lista_vazia(struct arquivo *a){
+    if(a==NULL){
+        return true;
+    }
+    return false;
+}
+
+void *trata_thread_ranking(struct arquivo *a, struct arquivo *lista_arquivos)
 {
-    struct arquivo lista_arquivos[n_max];
-    lista_arquivos[0].arquivo="";
+
     fprintf(stderr, "\nArquivo recebido %s", a->arquivo);
     fprintf(stderr, "\nQtd de vezes %d", a->n_vezes);
     
@@ -167,7 +169,11 @@ void *trata_thread_ranking(struct arquivo *a)
     {   
         fprintf(stderr, "\nIniciando nova busca\n");
         //printf("\n\n\n Iniciando nova busca");
-        faz_ranking(a, lista_arquivos);
+        if(is_lista_vazia(a)==false){
+            pthread_mutex_lock(&lock);
+            faz_ranking(a, lista_arquivos);
+            pthread_mutex_unlock(&lock);
+        }
         sleep(5); /*espera 5 segundos e executa de novo*/
     }
 
