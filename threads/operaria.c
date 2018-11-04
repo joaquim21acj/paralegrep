@@ -115,9 +115,9 @@ void insere_caracter(struct palavra *FILA, int valor)
 }
 
 int compara(struct palavra *FILA, char *word){
-    fprintf(stderr, "\nIniciando a comparacao\n");
+    //fprintf(stderr, "\nIniciando a comparacao qtd de itens na fila %d\n", qtd_itens_fila_o);
     if(vazia(FILA)){
-		fprintf(stderr, "\nFila vazia!\n\n");
+		//fprintf(stderr, "\nFila vazia!\n\n");
 		return false;
 	}
     char s[qtd_itens_fila_o];
@@ -130,22 +130,44 @@ int compara(struct palavra *FILA, char *word){
         
         tmp=tmp->prox;
     }
-
-    int rc = strncmp(s, word, qtd_itens_fila_o);
-    
-    if(rc==0){
-        fprintf(stderr,"\n A comp entre s: %s e word: %s foi igual", s, word);
-        return true;
-    }else{
-        fprintf(stderr,"\n A comp entre s: %s e word: %s foi diferente", s, word);
+    int tam_word = strlen(word);
+    if (tam_word>qtd_itens_fila_o){
         return false;
     }
+    int rc = strncmp(s, word, tam_word);
+    
+    if(rc==0){
+        //fprintf(stderr,"\n A comp entre s: %s e word: %s foi igual", s, word);
+        return true;
+    }else{
+        //fprintf(stderr,"\n A comp entre s: %s e word: %s foi diferente", s, word);
+        return false;
+    }
+}
+
+int is_caractere(int ch){
+    if (ch == 32) return false;
+    if (ch == 10) return false;
+    if (ch == 33) return false;
+    if (ch == 34) return false;
+    if (ch == 40) return false;
+    if (ch == 41) return false;
+    if (ch == 42) return false;
+    if (ch == 44) return false;
+    if (ch == 47) return false;
+    if (ch == 58) return false;
+    if (ch == 59) return false;
+    if (ch == 123) return false;
+    if (ch == 124) return false;
+    if (ch == 125) return false;
+    else return true;
 }
 
 void ocorrencias(struct arquivo *a, char *word) {  
     fprintf(stderr, "\nIniciando contagem de ocorrencias no arquivo\n");
     FILE *_arquivo_;
     _arquivo_ = fopen(a->arquivo, "r");
+    a->n_vezes=0;
     if (_arquivo_ == NULL){
       fprintf(stderr, "\nNão foi possível abrir o novo arquivo...\n");
       exit(1);
@@ -164,7 +186,7 @@ void ocorrencias(struct arquivo *a, char *word) {
     /*Estou seguindo este tutorial*/
     int ch = fgetc(_arquivo_);
     while (ch != EOF){
-        if((ch == 32)||(ch == 10)){
+        if(is_caractere(ch)==false){
             struct palavra *tmp = FILA->prox;
             int contador=0;
             while (contador<qtd_itens_fila_o){
@@ -172,8 +194,9 @@ void ocorrencias(struct arquivo *a, char *word) {
                 contador++;
             }            
             /*Chamar a função que faz a comparação que deve retornar 1 para igual e 0 para diferente*/
-            if(compara(FILA, word)){
+            if(compara(FILA, word)==true){
                 a->n_vezes++;
+                fprintf(stderr, "\n Comparação foi true e o numero de vezes e: %d", a->n_vezes);
             }
             /*Incrementar o contador que diz quantas vezes a palavra apareceu no arquivo*/
             libera(FILA);

@@ -19,7 +19,7 @@
 #endif
 
 #define backup "/home/joaquim/joaquim/ifb/so/paralegrep/backup_files/"
-#define fileset "/home/joaquim/ifb/so/paralegrep/fileset/file.txt"
+#define fileset "/home/joaquim/ifb/so/paralegrep/fileset/cabernet.txt"
 typedef int bool;
 
 #define true 1

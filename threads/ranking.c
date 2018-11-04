@@ -64,15 +64,16 @@ void inicia(struct palavra *FILA){
 	tam=0;
 }
 int is_arquivo_on_lista(char *dir, struct arquivo *lista_arquivos){
-    fprintf(stderr, "\nRealizando verificação p saber se o caminho é novo");
     fprintf(stderr, "\nQtd de arquivos: %d", qtd_arq_r);
     
     for(int i=0; i<qtd_arq_r; i++){
         fprintf(stderr, "\nDir de comp dir: %s e tmp->arq: %s", dir, lista_arquivos[i].arquivo);
         if(strcmp(dir, lista_arquivos[i].arquivo)==0){
+            fprintf(stderr, "\nArquivo esta na lista: %s", dir);
             return true;
         }
     }
+    fprintf(stderr, "\nArquivo não esta na lista: %s", dir);
     return false;
 }
 
@@ -88,6 +89,7 @@ int retorna_pos_arquivo(char *dir, struct arquivo *lista_arquivos){
     return i;
 }
 
+/*Esta função ta ordenando o menor primeiro, mas deveria ordenar para o maior primeiro*/
 void ordena(struct arquivo *lista_arquivos, int tam)  
 {  
   int i, j, min, swap;
@@ -105,6 +107,8 @@ void ordena(struct arquivo *lista_arquivos, int tam)
       lista_arquivos[min].n_vezes = swap;
     }
   }
+    fprintf(stderr, "\n ordenou e o primeiro item foi o %s", lista_arquivos[0].arquivo);
+    fprintf(stderr, "\n ordenou e o primeiro item foi o %s", lista_arquivos[1].arquivo);
 }
 
 void imprime_top_10(struct arquivo *lista_arquivos){
@@ -121,6 +125,7 @@ struct arquivo *funcao_inserir_novo_item(struct arquivo *lista_arquivos, struct 
         exit(1);
     }    
     lista_arquivos[qtd_arq_r]=a;
+    fprintf(stderr, "\nFoi inserido na lista %s", lista_arquivos[qtd_arq_r].arquivo);
     qtd_arq_r++;
     return lista_arquivos;
 }
@@ -154,6 +159,8 @@ void *trata_thread_ranking(struct arquivo *a)
 {
     struct arquivo lista_arquivos[n_max];
     lista_arquivos[0].arquivo="";
+    fprintf(stderr, "\nArquivo recebido %s", a->arquivo);
+    fprintf(stderr, "\nQtd de vezes %d", a->n_vezes);
     
 
     while (1)
